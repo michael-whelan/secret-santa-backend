@@ -105,7 +105,8 @@ def main(people_list = None):
 		else:
 			success=True
 
-	return send_messages(people_list)
+	return 200
+	#return send_messages(people_list)
 	print('success:', success)
 	print('fails:', fails)
 

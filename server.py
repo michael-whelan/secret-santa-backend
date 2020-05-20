@@ -77,6 +77,8 @@ class Handler (BaseHTTPRequestHandler) :
 		if path == "/sendmail":
 			people = db.get_people(par['ugid'][0],creds['uuid'])
 			status = SS.gen_people(people)
+			if status ==200:
+				db.group_sent(par['ugid'][0])
 			self.send_response(status)
 			self.end_headers()
 		self.send_response(404)
