@@ -108,7 +108,7 @@ def getGroup(g_id, u_id):
 def get_people(g_id, u_id):
 	if not user_group_rights(g_id,u_id,None, False):
 		return 201
-	query = """SELECT name,email 
+	query = """SELECT id,name,email,nots
 	from people where group_id = 
 	(select id from groups where group_url_id = '%s')""" % (g_id)
 	conn = sqlite3.connect('secretsanta.db')

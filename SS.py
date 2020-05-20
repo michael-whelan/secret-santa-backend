@@ -3,6 +3,7 @@ import copy
 import os
 import json
 from pprint import pprint
+from itertools import combinations
 import re
 import random
 import copy
@@ -16,10 +17,12 @@ from operator import attrgetter
 
 
 class Person:
-	def __init__(self, name, email):
+	def __init__(self, uid, name, email, not_ids):
+		self.uid = uid
 		self.name = name
 		self.email = email
 		self.not_list =[]
+		self.not_ids = not_ids
 		self.possible_list =[]
 		self.chosen=False
 
@@ -46,39 +49,46 @@ class Person:
 taken = []
 
 
-usersG = [
-	Person('Michael','*****@gmail.com'),
-	Person('Damo','*****@gmail.com'),
-	Person('Emma','*****@gmail.com'),
-	Person('Joanna','*****@gmail.com'),
-	Person('Fiach','*****@gmail.com'),
-	Person('Sam','*****@hotmail.com'),
-	Person('Rach','*****@gmail.com'),
-	Person('Jack','*****@gmail.com'),
-	Person('Sean','*****@gmail.com'),
-	Person('Aine','*****@gmail.com')
-]
+# usersG = [
+# 	Person('Michael','*****@gmail.com'),
+# 	Person('Damo','*****@gmail.com'),
+# 	Person('Emma','*****@gmail.com'),
+# 	Person('Joanna','*****@gmail.com'),
+# 	Person('Fiach','*****@gmail.com'),
+# 	Person('Sam','*****@hotmail.com'),
+# 	Person('Rach','*****@gmail.com'),
+# 	Person('Jack','*****@gmail.com'),
+# 	Person('Sean','*****@gmail.com'),
+# 	Person('Aine','*****@gmail.com')
+# ]
 
-usersG[0].not_list.append(usersG[2])
-usersG[2].not_list.append(usersG[0])
-usersG[1].not_list.append(usersG[3])
-usersG[3].not_list.append(usersG[1])
-usersG[4].not_list.append(usersG[5])
-usersG[5].not_list.append(usersG[4])
+# usersG[0].not_list.append(usersG[2])
+# usersG[2].not_list.append(usersG[0])
+# usersG[1].not_list.append(usersG[3])
+# usersG[3].not_list.append(usersG[1])
+# usersG[4].not_list.append(usersG[5])
+# usersG[5].not_list.append(usersG[4])
 
 def fillTest(people_list):
 	for user in people_list:
 		user.not_list=[]
 		tempInt =random.randint(1,3)
 		while tempInt > 0:
-			user.not_list.append(random.choice(usersG))
+			user.not_list.append(random.choice(people_list))
 			tempInt-=1
 
 
 def gen_people(people):
 	people_list = []
 	for person in people:
-		people_list.append(Person(person[0], person[1]))  
+		not_ids = []
+		if person[3]:
+			not_ids = list(map(int,filter(len,person[3].split('|'))))
+		people_list.append(Person(person[0], person[1],person[2],not_ids))
+	for i,j in combinations(range(0, len(people_list)),2):
+		if people_list[j].uid in people_list[i].not_ids:
+			people_list[i].not_list.append(people_list[j])
+	import pdb; pdb.set_trace()
 	return main(people_list)
 
 def main(people_list = None):
@@ -95,10 +105,8 @@ def main(people_list = None):
 			fillTest(people_list)
 		else:
 			success=True
-	for user in people_list:
-		print(user.name, user.chosen.name)
-		#sendMessage(user)
-	return 200
+	
+	return send_messages(people_list)
 	print('success:', success)
 	print('fails:', fails)
 
@@ -115,25 +123,31 @@ def loopUsers(people_list):
 		return False
 
 
-def sendMessage(person):
+def send_messages(people):
 	####smtp_host = 'smtp.live.com'        # microsoft
 	smtp_host = 'smtp.gmail.com'       # google
 	#smtp_host = 'smtp.mail.yahoo.com'  # yahoo
 	login, password = 'santysecrets@gmail.com', '*******'
-
-	msg = MIMEText("To "+str(person.name)+", \n\nYou're secret santa giftee is "+str(person.chosen.name), 'plain', 'utf-8')
-	msg['Subject'] = Header('Secret Santa', 'utf-8')
-	msg['From'] = login
-	msg['To'] = person.email
-
 	s = smtplib.SMTP(smtp_host, 587, timeout=10)
 	s.set_debuglevel(1)
 	try:
 		s.starttls()
 		s.login(login, password)
-		s.sendmail(msg['From'], msg['To'], msg.as_string())
+		for person in people:
+			send_message(s,person)
+	except:
+		print("Error logging into email service")
+		return 304
 	finally:
 		s.quit()
+		return 200
+
+def send_message(email_service,person):
+	msg = MIMEText("To "+str(person.name)+", \n\nYou're secret santa giftee is "+str(person.chosen.name), 'plain', 'utf-8')
+	msg['Subject'] = Header('Secret Santa', 'utf-8')
+	msg['From'] = login
+	msg['To'] = person.email
+	email_service.sendmail(msg['From'], msg['To'], msg.as_string())
 
 # if __name__ == "__main__":
 # 	main()
