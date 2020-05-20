@@ -48,27 +48,6 @@ class Person:
 
 taken = []
 
-
-# usersG = [
-# 	Person('Michael','*****@gmail.com'),
-# 	Person('Damo','*****@gmail.com'),
-# 	Person('Emma','*****@gmail.com'),
-# 	Person('Joanna','*****@gmail.com'),
-# 	Person('Fiach','*****@gmail.com'),
-# 	Person('Sam','*****@hotmail.com'),
-# 	Person('Rach','*****@gmail.com'),
-# 	Person('Jack','*****@gmail.com'),
-# 	Person('Sean','*****@gmail.com'),
-# 	Person('Aine','*****@gmail.com')
-# ]
-
-# usersG[0].not_list.append(usersG[2])
-# usersG[2].not_list.append(usersG[0])
-# usersG[1].not_list.append(usersG[3])
-# usersG[3].not_list.append(usersG[1])
-# usersG[4].not_list.append(usersG[5])
-# usersG[5].not_list.append(usersG[4])
-
 def fillTest(people_list):
 	for user in people_list:
 		user.not_list=[]

@@ -119,7 +119,7 @@ def get_people(g_id, u_id):
 	return people_info
 
 	
-def group_sent(ugid):
+def group_sent(g_id):
 	query = """UPDATE groups SET sent = 1
 	where group_url_id = '%s'""" % (g_id)
 	do_query(query)
