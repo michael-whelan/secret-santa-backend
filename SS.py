@@ -88,7 +88,6 @@ def gen_people(people):
 	for i,j in combinations(range(0, len(people_list)),2):
 		if people_list[j].uid in people_list[i].not_ids:
 			people_list[i].not_list.append(people_list[j])
-	import pdb; pdb.set_trace()
 	return main(people_list)
 
 def main(people_list = None):
@@ -105,7 +104,7 @@ def main(people_list = None):
 			fillTest(people_list)
 		else:
 			success=True
-	
+
 	return send_messages(people_list)
 	print('success:', success)
 	print('fails:', fails)
@@ -127,25 +126,28 @@ def send_messages(people):
 	####smtp_host = 'smtp.live.com'        # microsoft
 	smtp_host = 'smtp.gmail.com'       # google
 	#smtp_host = 'smtp.mail.yahoo.com'  # yahoo
-	login, password = 'santysecrets@gmail.com', '*******'
-	s = smtplib.SMTP(smtp_host, 587, timeout=10)
-	s.set_debuglevel(1)
+	login, password = '************', '*********'
+	s = smtplib.SMTP(smtp_host,587)
+	#s.set_debuglevel(1)
+	s.ehlo()
 	try:
 		s.starttls()
 		s.login(login, password)
 		for person in people:
-			send_message(s,person)
+			send_message(s,person,login)
 	except:
+		t, value, traceback = sys.exc_info()
+		print(t, value, traceback)
 		print("Error logging into email service")
 		return 304
 	finally:
 		s.quit()
 		return 200
 
-def send_message(email_service,person):
+def send_message(email_service,person,sender):
 	msg = MIMEText("To "+str(person.name)+", \n\nYou're secret santa giftee is "+str(person.chosen.name), 'plain', 'utf-8')
 	msg['Subject'] = Header('Secret Santa', 'utf-8')
-	msg['From'] = login
+	msg['From'] = sender
 	msg['To'] = person.email
 	email_service.sendmail(msg['From'], msg['To'], msg.as_string())
 
