@@ -1,0 +1,11 @@
+2020-05-23 12:42:52: error: Cant capture uuid GET
+2020-05-23 12:42:52: getGroups done successfully
+2020-05-23 12:48:16: error: Cant capture uuid GET
+2020-05-23 12:48:16: getGroup done successfully
+2020-05-23 12:48:17: getGroups done successfully
+2020-05-23 12:49:51: error: Cant capture uuid GET
+2020-05-23 12:49:51: getGroup done successfully
+2020-05-23 12:49:51: getGroups done successfully
+2020-05-23 12:51:07: error: Cant capture uuid GET
+2020-05-23 12:52:08: warning: Cant capture uuid GET
+2020-05-23 12:56:31: warning: Cant capture uuid GET

@@ -1,20 +1,11 @@
 import sys
-import copy
-import os
-import json
-from pprint import pprint
 from itertools import combinations
-import re
 import random
-import copy
 from random import shuffle
 import smtplib
-from string import Template
-from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
-from operator import attrgetter
-
+from logger import log
 
 class Person:
 	def __init__(self, uid, name, email, not_ids):
@@ -117,8 +108,7 @@ def send_messages(people):
 			send_message(s,person,login)
 	except:
 		t, value, traceback = sys.exc_info()
-		print(t, value, traceback)
-		print("Error logging into email service")
+		log("Error: logging into email service. details: %s %s %s" %(t, value, traceback))
 		return 304
 	finally:
 		s.quit()

@@ -2,7 +2,7 @@ import sqlite3
 import uuid
 import datetime
 import hashlib
-
+from logger import log
 
 def generate_uid():
 	return uuid.uuid1().hex
@@ -17,28 +17,6 @@ def uniqueEntry(q):
 		return True
 	else:
 		return False
-
-
-def getUser(u,e,recpass):
-	query= ""
-	conn = sqlite3.connect('secretsanta.db')
-	if u is not None:
-		query = "SELECT * from users where uuid = '%s'" % (u)
-	else:
-		query = "SELECT * from users where email = '%s'" % (e)
-	cursor = conn.execute(query)
-	if cursor == None:
-		return None
-	rows = [x for x in cursor]
-	cols = [x[0] for x in cursor.description]
-	data = {}
-	for row in rows:
-		for prop, val in zip(cols, row):
-			data[prop] = val
-	
-	conn.close()
-	print ("getUser done successfully")
-	return data
 
 def getGroups(uuid):
 	#query = """SELECT * from groups where admin = (select id from users where uuid = '%s');""" % (uuid)
@@ -63,7 +41,6 @@ def getGroups(uuid):
 			dataSingle[prop] = val
 		raw_data.append(dataSingle)
 	conn.close()
-	print ("getGroups done successfully")
 	return raw_data	
 
 def getGroup(g_id, u_id):
@@ -102,7 +79,6 @@ def getGroup(g_id, u_id):
 		}
 		people.append(person)
 	ret_data["people"] = people
-	print ("getGroup done successfully")
 	return ret_data
 
 def get_people(g_id, u_id):
@@ -141,8 +117,7 @@ def addGroup(groupName, userInfo):
 			do_query(query)
 			return 200
 		except:
-			print("Error: add_group")
-			print(broken_query)
+			log("Error: add_group. "+broken_query)
 			return 400
 	return 400
 
@@ -168,15 +143,14 @@ def update_person(vars, creds):
 		do_query(query)
 		return 200
 	except:
-		print("Error: update_person")
-		print(query)
+		log("Error: update_person. "+query)
 		return 400
 
 def update_group(vars, creds):
 	id = vars.pop("ugid", None)
 	vars.pop("uuid", None)
-	vars['public'] = vars.pop("public_group")
-	
+	if 'public_group' in vars:
+		vars['public'] = vars.pop("public_group")
 	if not user_group_rights(id,creds["uuid"],None, False):
 		return 201
 	update_string = make_update_strings(vars)
@@ -185,10 +159,10 @@ def update_group(vars, creds):
 			)
 	try:
 		do_query(query)
+		record_update(id)
 		return 200
 	except:
-		print("Error: update_group")
-		print(query)
+		log("Error: update_group. "+query)
 		return 400
 
 def delete_group(vars, creds):
@@ -211,9 +185,9 @@ def delete_group(vars, creds):
 			do_query(query2)
 			return 200
 		except:
-			print("Error: delete_group")
-			print(broken_query1)
-			print(broken_query2)
+			log("Error: delete_group")
+			log(broken_query1)
+			log(broken_query2)
 			return 400
 	return 400
 
@@ -229,10 +203,10 @@ def add_person(vars,creds):
 			)
 	try:
 		do_query(query)
+		record_update(vars["ugid"])
 		return 200
 	except:
-		print("Error: Adding person")
-		print(query)
+		log("Error: Adding person. "+query)
 		return 400
 
 def delete_person(vars, creds):
@@ -292,6 +266,15 @@ def user_group_rights(gid, uid, pid,strict=True):
 	except:
 		return False
 
+def record_update(ugid):
+	nowTime = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+	
+	query = """update groups set last_update_date = %s where 
+	group_url_id = %s""" % (nowTime,ugid)
+	try:
+		do_query(query)
+	except:
+		log("Error updating group update time. "+query)
 
 def do_query(q):
 	conn = sqlite3.connect('secretsanta.db')

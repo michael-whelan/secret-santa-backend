@@ -1,23 +1,13 @@
 #!/usr/bin/python
 # coding=utf-8
 
-from BaseHTTPServer import HTTPServer
-from BaseHTTPServer import BaseHTTPRequestHandler
-import os
-from os import curdir, sep
+from BaseHTTPServer import HTTPServer,BaseHTTPRequestHandler
 import json
-import re
-import db
-import SS
-import codecs
 import cgi
 import urlparse
-from flask import Flask, jsonify, abort, request, make_response, url_for, render_template, redirect
-import random
-import hashlib
-import datetime
-import errno
-import socket
+import db
+import SS
+from logger import log
 
 ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
@@ -56,7 +46,7 @@ class Handler (BaseHTTPRequestHandler) :
 		try:
 			creds['uuid'] = par['uuid'][0]
 		except:
-			print("error: Cant capture uuid GET")
+			log("warning: Cant capture uuid GET")
 		
 		path = self.path.split('?')[0]
 		if path == "/getgroups" or path == "/getgroups/":
@@ -69,9 +59,15 @@ class Handler (BaseHTTPRequestHandler) :
 			self.end_headers
 			return
 		if path == "/getgroup":
-			self.send_response(200)
-			self.wfile.write("\n")
-			json.dump(db.getGroup(par['ugid'][0],creds['uuid']), self.wfile)
+			
+			group = db.getGroup(par['ugid'][0],creds['uuid'])
+			if group == 201:
+				self.send_response(201)
+				self.wfile.write("\n")
+			else:
+				self.send_response(200)
+				self.wfile.write("\n")
+				json.dump(group, self.wfile)
 			self.end_headers()
 			return
 		if path == "/sendmail":
@@ -96,18 +92,13 @@ class Handler (BaseHTTPRequestHandler) :
 				newJson[key] = v[key]
 		return newJson
 
-	def gensalt(self):
-		chars=[]
-		return ''.join(random.choice(ALPHABET) for i in range(16))
-
-
 	def do_POST(self):
 		creds= {'uuid': 'null'}
 		postvars = self.parse_POST()
 		try:
 			creds['uuid'] = postvars['uuid']
 		except:
-			print("error: Cant capture uuid POST")
+			log("error: Cant capture uuid POST")
 		
 		if creds is not None:
 			status = 404
@@ -128,7 +119,7 @@ class Handler (BaseHTTPRequestHandler) :
 		try:
 			creds['uuid'] = postvars['uuid']
 		except:
-			print("error: Cant capture uuid PUT")
+			log("error: Cant capture uuid PUT")
 		if creds is not None:
 			status = 404
 			if self.path == "/updateperson" or self.path == "/updateperson/":
@@ -148,7 +139,7 @@ class Handler (BaseHTTPRequestHandler) :
 		try:
 			creds['uuid'] = par['uuid'][0]
 		except:
-			print("error: Cant capture uuid DELETE")
+			log("error: Cant capture uuid DELETE")
 		
 		if creds is not None:
 			if self.path.split('?')[0] == "/deleteperson":
@@ -157,7 +148,7 @@ class Handler (BaseHTTPRequestHandler) :
 				status = db.delete_group(par,creds)
 			self.send_response(status)
 			self.end_headers()
-
-server = HTTPServer(("localhost", PORT), Handler)
-print ("serving on port", PORT)
-server.serve_forever()
+if __name__ == '__main__':
+	server = HTTPServer(("localhost", PORT), Handler)
+	print ("serving on port", PORT)
+	server.serve_forever()
