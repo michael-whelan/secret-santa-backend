@@ -2,6 +2,7 @@
 # coding=utf-8
 
 from BaseHTTPServer import HTTPServer,BaseHTTPRequestHandler
+from flask import Flask, jsonify,abort,make_response,request
 import json
 import cgi
 import urlparse
@@ -9,16 +10,15 @@ import db
 import SS
 from logger import log
 
-ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+app = Flask(__name__)
 
 PORT = 8080
 
 """
 Codes:
 200 success
-201 insuffient rights
 202 added person
-401 uuid not found
+401 insuffient rights
 402 group not found
 404 error in understanding request
 """
@@ -26,7 +26,58 @@ Codes:
 #creds = db.check_credentials(self.headers.getheader('X-User-ID'),
 #	self.headers.getheader('X-User-Email'), self.headers.getheader('X-User-Pass'))
 
-class Handler (BaseHTTPRequestHandler) :
+@app.route('/getgroups', methods=['GET'])
+def get_groups():
+	uuid = request.args.get('uuid')
+	if not uuid:
+		abort(401)
+	else:
+		return (jsonify(db.getGroups(uuid)),200)
+
+
+@app.route('/getgroup/', methods=['GET'])
+def get_group():
+	uuid = request.args.get('uuid')
+	ugid = request.args.get('ugid')
+	group = db._get_group(ugid,uuid)
+	if group == 401:
+		abort(401)
+	return (jsonify(group),200)
+
+@app.route('/sendmail', methods=['GET'])
+def send_mail():
+	uuid = request.args.get('uuid')
+	ugid = request.args.get('ugid')
+	people = db.get_people(ugids,uuid)
+	status = SS.gen_people(people)
+	if status ==200:
+		db.group_sent(ugid)
+		return(200)
+	return(400)
+
+@app.route('/creategroup', methods=['POST'])
+def create_group():
+	uuid = 'null'
+	postvars = self.parse_POST()
+	try:
+		uuid = request.args.get('uuid')
+	except:
+		log("error: Cant capture uuid POST")
+	
+	if uuid is not None:
+		status = 404
+		return db.addGroup(request.json["group_name"],uuid)
+	return(404)
+
+@app.route('/addperson', methods=['POST'])
+def add_person():
+	uuid = 'null'
+	status = db._add_person(request.json)
+	if status == 401:
+		abort(401)
+	return (jsonify(status), 200)
+
+class Handler(BaseHTTPRequestHandler):
 	def do_OPTIONS(self):
 		self.send_response(200, "ok")
 		self.send_header('Access-Control-Allow-Origin', '*')
@@ -149,6 +200,7 @@ class Handler (BaseHTTPRequestHandler) :
 			self.send_response(status)
 			self.end_headers()
 if __name__ == '__main__':
-	server = HTTPServer(("localhost", PORT), Handler)
-	print ("serving on port", PORT)
-	server.serve_forever()
+	app.run(debug=True)
+	#server = HTTPServer(("localhost", PORT), Handler)
+	#print ("serving on port", PORT)
+	#server.serve_forever()

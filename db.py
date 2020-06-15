@@ -43,9 +43,9 @@ def getGroups(uuid):
 	conn.close()
 	return raw_data	
 
-def getGroup(g_id, u_id):
+def _get_group(g_id, u_id):
 	if not user_group_rights(g_id,u_id,None, False):
-		return 201
+		return 401
 
 	query1 = """SELECT id as group_id,group_name,sent,public,group_url_id from groups
 	where group_url_id = '%s'""" % (g_id)
@@ -83,7 +83,7 @@ def getGroup(g_id, u_id):
 
 def get_people(g_id, u_id):
 	if not user_group_rights(g_id,u_id,None, False):
-		return 201
+		return 401
 	query = """SELECT id,name,email,nots
 	from people where group_id = 
 	(select id from groups where group_url_id = '%s')""" % (g_id)
@@ -102,8 +102,7 @@ def group_sent(g_id):
 	return 200
 	
 
-def addGroup(groupName, userInfo):
-	uuid = userInfo["uuid"]
+def addGroup(groupName, uuid):
 	broken_query = "error"
 	if uniqueEntry("""select * from groups where group_name = '%s'""" % (groupName)):
 		try:
@@ -129,12 +128,12 @@ def make_update_strings(vars):
 	return ret_string[:-2]
 
 
-def update_person(vars, creds):
+def update_person(vars, uuid):
 	id = vars.pop("person_id", None)
 	vars.pop("uuid", None)
 	update_string = make_update_strings(vars)
-	if not user_group_rights(None,creds["uuid"],id, False):
-		return 201
+	if not user_group_rights(None,uuid,id, False):
+		return 401
 	
 	query = """update people set %s where id = %s""" % (
 				update_string, id
@@ -146,13 +145,13 @@ def update_person(vars, creds):
 		log("Error: update_person. "+query)
 		return 400
 
-def update_group(vars, creds):
+def update_group(vars, uuid):
 	id = vars.pop("ugid", None)
 	vars.pop("uuid", None)
 	if 'public_group' in vars:
 		vars['public'] = vars.pop("public_group")
-	if not user_group_rights(id,creds["uuid"],None, False):
-		return 201
+	if not user_group_rights(id,uuid,None, False):
+		return 401
 	update_string = make_update_strings(vars)
 	query = """update groups set %s where group_url_id = '%s'""" % (
 				update_string, id
@@ -165,19 +164,19 @@ def update_group(vars, creds):
 		log("Error: update_group. "+query)
 		return 400
 
-def delete_group(vars, creds):
+def delete_group(vars, uuid):
 	if vars["ugid"][0]:
-		if not user_group_rights(vars["ugid"][0],creds["uuid"],None, True):
-			return 201
+		if not user_group_rights(vars["ugid"][0],uuid,None, True):
+			return 401
 		broken_query1 = "error"
 		broken_query2 = "error"
 		try:
 			query1 = """delete from people where group_id =
 			(select id from groups where group_url_id = '%s' and admin_uuid = '%s');""" % (
-					vars["ugid"][0], creds["uuid"]
+					vars["ugid"][0], uuid
 				)
 			query2 = """delete from groups where group_url_id = '%s' and admin_uuid = '%s';""" % (
-					vars["ugid"][0], creds["uuid"]
+					vars["ugid"][0], uuid
 				)
 			broken_query1 = query1
 			broken_query2 = query2
@@ -191,9 +190,9 @@ def delete_group(vars, creds):
 			return 400
 	return 400
 
-def add_person(vars,creds):
-	if not user_group_rights(vars["ugid"],creds["uuid"], None,False):
-			return 201
+def _add_person(vars):
+	if not user_group_rights(vars["ugid"],vars["uuid"], None,False):
+		return 401
 	new_name = vars["name"]
 	new_email = vars["email"]
 	query = """insert into people(group_id, name, email, active) values (
@@ -209,9 +208,9 @@ def add_person(vars,creds):
 		log("Error: Adding person. "+query)
 		return 400
 
-def delete_person(vars, creds):
-	if not user_group_rights(None,creds["uuid"],vars["id"][0], True):
-		return 201
+def delete_person(vars, uuid):
+	if not user_group_rights(None,uuid,vars["id"][0], True):
+		return 401
 	if vars["id"][0]:
 		try:
 			query = """delete from people where id = %s""" % (
