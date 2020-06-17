@@ -2,14 +2,15 @@
 
 ## The Python
 ￼
-￼
+
 ￼The server side logic for the app is in two parts:
 ￼
-￼### 1. API 
-￼
+￼### 1. API
+
 ￼A simple rest server used for data management (groups + settings, people in those groups etc). 
 ￼Using pythons BaseHTTPServer to handle my REST requests:
-￼```python
+
+```python
 ￼from BaseHTTPServer import HTTPServer
 ￼from BaseHTTPServer import BaseHTTPRequestHandler
 ￼import os
