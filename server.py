@@ -3,12 +3,12 @@
 
 from BaseHTTPServer import HTTPServer,BaseHTTPRequestHandler
 from flask import Flask, jsonify,abort,make_response,request
-import json
-import cgi
 import urlparse
 import db
 import SS
 from logger import log
+from socket import gethostname
+
 
 app = Flask(__name__)
 
@@ -48,26 +48,24 @@ def get_group():
 def send_mail():
 	uuid = request.args.get('uuid')
 	ugid = request.args.get('ugid')
-	people = db.get_people(ugids,uuid)
+	people = db.get_people(ugid,uuid)
 	status = SS.gen_people(people)
 	if status ==200:
 		db.group_sent(ugid)
-		return(200)
-	return(400)
+		return(jsonify({'status': status }))
+	abort(400)
 
 @app.route('/creategroup', methods=['POST'])
 def create_group():
 	uuid = 'null'
-	postvars = self.parse_POST()
 	try:
-		uuid = request.args.get('uuid')
+		uuid = request.json["uuid"]
 	except:
 		log("error: Cant capture uuid POST")
-	
 	if uuid is not None:
-		status = 404
-		return db.addGroup(request.json["group_name"],uuid)
-	return(404)
+		status = db._add_group(request.json["group_name"],uuid)
+		return jsonify({'status': status })
+	abort(404)
 
 @app.route('/addperson', methods=['POST'])
 def add_person():
@@ -76,6 +74,57 @@ def add_person():
 	if status == 401:
 		abort(401)
 	return (jsonify(status), 200)
+
+@app.route('/updateperson', methods=['PUT'])
+def update_person():
+	uuid = 'null'
+	try:
+		uuid = request.json.pop("uuid", None)
+	except:
+		log("error: Cant capture uuid POST")
+		abort(401)
+	status = db._update_person(request.json,uuid)
+	return (jsonify({'status': status }))
+
+@app.route('/updategroup', methods=['PUT'])
+def update_group():
+	uuid = 'null'
+	try:
+		uuid = request.json.pop("uuid", None)
+	except:
+		log("error: Cant capture uuid POST")
+		abort(401)
+	status = db._update_group(request.json,uuid)
+	return (jsonify({'status': status }))
+
+@app.route('/deleteperson', methods=['DELETE'])
+def delete_person():
+	uuid = 'null'
+	try:
+		uuid = request.args.get('uuid')
+	except:
+		log("error: Cant capture uuid DELETE")
+		abort(401)
+	if uuid is not None:
+		status = db._delete_person( request.args.get('id'),uuid)
+		return (jsonify({'status': status }))
+	abort(401)
+
+@app.route('/deletegroup', methods=['DELETE'])
+def delete_group():
+	uuid = 'null'
+	try:
+		uuid = request.args.get('uuid')
+	except:
+		log("error: Cant capture uuid DELETE")
+		abort(401)
+	import pdb; pdb.set_trace()
+	if uuid is not None:
+		status = db._delete_group( request.args.get('ugid'),uuid)
+		return (jsonify({'status': status }))
+	abort(401)
+	# elif self.path.split('?')[0] == "/deletegroup":
+	# status = db.delete_group(par,creds)
 
 class Handler(BaseHTTPRequestHandler):
 	def do_OPTIONS(self):
@@ -200,7 +249,8 @@ class Handler(BaseHTTPRequestHandler):
 			self.send_response(status)
 			self.end_headers()
 if __name__ == '__main__':
-	app.run(debug=True)
+	if 'liveconsole' not in gethostname():
+		app.run(debug=True)
 	#server = HTTPServer(("localhost", PORT), Handler)
 	#print ("serving on port", PORT)
 	#server.serve_forever()

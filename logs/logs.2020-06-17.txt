@@ -1,0 +1,15 @@
+
+2020-06-17 17:22:19: Error updating group update time. update groups set last_update_date = 2020-06-17 17:22:19 where 
+	group_url_id = 4efe8e508eb811ea872c74e543de5a73
+2020-06-17 17:32:22: Error: Adding person. insert into people(group_id, name, email, active) values (
+		(select id from groups where group_url_id = '4efe8e508eb811ea872c74e543de5a73')
+		, 'aasss', 'asffffggh',1)
+2020-06-17 17:36:43: Error: Adding person. insert into people(group_id, name, email, active) values (
+		(select id from groups where group_url_id = '4efe8e508eb811ea872c74e543de5a73')
+		, 'dgd', 'sdsgs',1)
+2020-06-17 17:36:50: Error updating group update time. update groups set last_update_date = 1592411810 where 
+	group_url_id = 4efe8e508eb811ea872c74e543de5a73
+2020-06-17 17:42:24: Error: add_group. error
+2020-06-17 17:44:31: Error: add_group. error
+2020-06-17 17:56:54: error: Cant capture uuid DELETE
+2020-06-17 17:57:36: error: Cant capture uuid DELETE

@@ -1,7 +1,8 @@
 import sqlite3
 import uuid
-import datetime
 import hashlib
+import calendar
+import time
 from logger import log
 
 def generate_uid():
@@ -102,11 +103,11 @@ def group_sent(g_id):
 	return 200
 	
 
-def addGroup(groupName, uuid):
+def _add_group(groupName, uuid):
 	broken_query = "error"
 	if uniqueEntry("""select * from groups where group_name = '%s'""" % (groupName)):
 		try:
-			nowTime = '{:%Y-%m-%d}'.format(datetime.datetime.now())
+			nowTime = calendar.timegm(time.gmtime())
 			ugid = generate_uid()
 			query = """insert into groups (group_name,date_created,last_update_date,admin_uuid,public,sent,group_url_id)
 				values ('%s', '%s', '%s', '%s', 0,0,'%s');""" % (
@@ -116,6 +117,7 @@ def addGroup(groupName, uuid):
 			do_query(query)
 			return 200
 		except:
+			print("Error: add_group. "+broken_query)
 			log("Error: add_group. "+broken_query)
 			return 400
 	return 400
@@ -128,9 +130,8 @@ def make_update_strings(vars):
 	return ret_string[:-2]
 
 
-def update_person(vars, uuid):
+def _update_person(vars,uuid):
 	id = vars.pop("person_id", None)
-	vars.pop("uuid", None)
 	update_string = make_update_strings(vars)
 	if not user_group_rights(None,uuid,id, False):
 		return 401
@@ -145,9 +146,8 @@ def update_person(vars, uuid):
 		log("Error: update_person. "+query)
 		return 400
 
-def update_group(vars, uuid):
+def _update_group(vars, uuid):
 	id = vars.pop("ugid", None)
-	vars.pop("uuid", None)
 	if 'public_group' in vars:
 		vars['public'] = vars.pop("public_group")
 	if not user_group_rights(id,uuid,None, False):
@@ -164,19 +164,19 @@ def update_group(vars, uuid):
 		log("Error: update_group. "+query)
 		return 400
 
-def delete_group(vars, uuid):
-	if vars["ugid"][0]:
-		if not user_group_rights(vars["ugid"][0],uuid,None, True):
+def _delete_group(ugid, uuid):
+	if ugid:
+		if not user_group_rights(ugid,uuid,None, True):
 			return 401
 		broken_query1 = "error"
 		broken_query2 = "error"
 		try:
 			query1 = """delete from people where group_id =
 			(select id from groups where group_url_id = '%s' and admin_uuid = '%s');""" % (
-					vars["ugid"][0], uuid
+					ugid, uuid
 				)
 			query2 = """delete from groups where group_url_id = '%s' and admin_uuid = '%s';""" % (
-					vars["ugid"][0], uuid
+					ugid, uuid
 				)
 			broken_query1 = query1
 			broken_query2 = query2
@@ -208,13 +208,13 @@ def _add_person(vars):
 		log("Error: Adding person. "+query)
 		return 400
 
-def delete_person(vars, uuid):
-	if not user_group_rights(None,uuid,vars["id"][0], True):
+def _delete_person(pid, uuid):
+	if not user_group_rights(None,uuid,pid, True):
 		return 401
-	if vars["id"][0]:
+	if pid:
 		try:
 			query = """delete from people where id = %s""" % (
-						vars["id"][0]
+						pid
 					)
 			do_query(query)
 			return 200
@@ -266,10 +266,9 @@ def user_group_rights(gid, uid, pid,strict=True):
 		return False
 
 def record_update(ugid):
-	nowTime = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
-	
-	query = """update groups set last_update_date = %s where 
-	group_url_id = %s""" % (nowTime,ugid)
+	nowTime = calendar.timegm(time.gmtime())
+	query = """update groups set last_update_date = '%s' where 
+	group_url_id = '%s'""" % (nowTime,ugid)
 	try:
 		do_query(query)
 	except:
