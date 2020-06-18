@@ -5,7 +5,7 @@ import urlparse
 import db
 import SS
 from logger import log
-from socket import gethostname
+from local_settings.py import environment
 
 
 app = Flask(__name__)
@@ -122,5 +122,5 @@ def delete_group():
 
 
 if __name__ == '__main__':
-	if 'liveconsole' not in gethostname():
+	if environment == 'dev':
 		app.run(debug=True)

@@ -5,10 +5,13 @@ import calendar
 import time
 from logger import log
 from socket import gethostname
+from local_settings.py import environment
 
-dbpath= '/home/MichaelWhelan/mysite/secretsanta.db'
-if 'liveconsole' not in gethostname():
-	dbpath='secretsanta.db'
+
+dbpath= '/home/MichaelWhelan/secret-santa-backend/secretsanta.db'
+if environment == 'dev':
+	dbpath= 'secretsanta.db'
+	
 
 def generate_uid():
 	return uuid.uuid1().hex
