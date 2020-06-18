@@ -5,11 +5,11 @@ import calendar
 import time
 from logger import log
 from socket import gethostname
-from local_settings.py import environment
+import local_settings
 
 
 dbpath= '/home/MichaelWhelan/secret-santa-backend/secretsanta.db'
-if environment == 'dev':
+if local_settings.environment == 'dev':
 	dbpath= 'secretsanta.db'
 	
 

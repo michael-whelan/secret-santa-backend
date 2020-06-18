@@ -5,7 +5,7 @@ import urlparse
 import db
 import SS
 from logger import log
-from local_settings.py import environment
+import local_settings
 
 
 app = Flask(__name__)
@@ -122,5 +122,5 @@ def delete_group():
 
 
 if __name__ == '__main__':
-	if environment == 'dev':
+	if local_settings.environment == 'dev':
 		app.run(debug=True)
