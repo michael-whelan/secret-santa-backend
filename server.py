@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # coding=utf-8
-from flask import Flask, jsonify,abort,make_response,request
-import urlparse
+from flask import Flask, jsonify,abort,request
 import db
 import SS
 from logger import log

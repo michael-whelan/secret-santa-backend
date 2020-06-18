@@ -6,6 +6,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.header import Header
 from logger import log
+import local_settings
 
 class Person:
 	def __init__(self, uid, name, email, not_ids):
@@ -97,7 +98,7 @@ def send_messages(people):
 	####smtp_host = 'smtp.live.com'        # microsoft
 	smtp_host = 'smtp.gmail.com'       # google
 	#smtp_host = 'smtp.mail.yahoo.com'  # yahoo
-	login, password = '************', '*********'
+	login, password = local_settings.ss_username, local_settings.ss_pass
 	s = smtplib.SMTP(smtp_host,587)
 	#s.set_debuglevel(1)
 	s.ehlo()
@@ -120,7 +121,3 @@ def send_message(email_service,person,sender):
 	msg['From'] = sender
 	msg['To'] = person.email
 	email_service.sendmail(msg['From'], msg['To'], msg.as_string())
-
-# if __name__ == "__main__":
-# 	main()
-	#sendMessage('santysecrets@gmail.com','seagullmania93@gmail.com')
