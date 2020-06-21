@@ -13,7 +13,7 @@ import mysql.connector
 #	dbpath= 'secretsanta.db'
 
 config = {
-	'username': local_settings.sql_user,
+	'user': local_settings.sql_user,
 	'password': local_settings.sql_pass,
 	'host': local_settings.sql_host,
 	'database': local_settings.sql_db,
