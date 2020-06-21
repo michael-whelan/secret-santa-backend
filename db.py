@@ -6,12 +6,37 @@ import time
 from logger import log
 from socket import gethostname
 import local_settings
+import mysql.connector
 
+#dbpath= '/home/MichaelWhelan/secret-santa-backend/secretsanta.db'
+#if local_settings.environment == 'dev':
+#	dbpath= 'secretsanta.db'
 
-dbpath= '/home/MichaelWhelan/secret-santa-backend/secretsanta.db'
-if local_settings.environment == 'dev':
-	dbpath= 'secretsanta.db'
-	
+config = {
+	'username': local_settings.sql_user,
+	'password': local_settings.sql_pass,
+	'host': local_settings.sql_host,
+	'database': local_settings.sql_db,
+	'raise_on_warnings': True
+}
+
+def connect_db():
+	conn = None
+	if local_settings.environment == 'dev':
+		conn = sqlite3.connect('secretsanta.db')
+	else:
+		conn = mysql.connector.connect(**config)
+	return conn
+
+def get_tables():
+	cnx = connect_db()
+	query = ("show tables")
+	cursor = cnx.cursor()
+	cursor.execute(query)
+	data=cursor.fetchall()
+	cnx.close()
+	return data
+
 
 def generate_uid():
 	return uuid.uuid1().hex

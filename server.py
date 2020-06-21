@@ -9,8 +9,6 @@ import local_settings
 
 app = Flask(__name__)
 
-PORT = 8080
-
 """
 Codes:
 200 success
@@ -18,9 +16,9 @@ Codes:
 400 generic wrong
 404 error in understanding request
 """
-
-#creds = db.check_credentials(self.headers.getheader('X-User-ID'),
-#	self.headers.getheader('X-User-Email'), self.headers.getheader('X-User-Pass'))
+@app.route('/')
+def index():
+	return (jsonify(db.get_tables()),200)
 
 @app.route('/getgroups', methods=['GET'])
 def get_groups():
