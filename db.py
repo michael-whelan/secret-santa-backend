@@ -8,10 +8,6 @@ from socket import gethostname
 import local_settings
 import mysql.connector
 
-#dbpath= '/home/MichaelWhelan/secret-santa-backend/secretsanta.db'
-#if local_settings.environment == 'dev':
-#	dbpath= 'secretsanta.db'
-
 config = {
 	'user': local_settings.sql_user,
 	'password': local_settings.sql_pass,
@@ -28,21 +24,11 @@ def connect_db():
 		conn = mysql.connector.connect(**config)
 	return conn
 
-def get_tables():
-	cnx = connect_db()
-	query = ("show tables")
-	cursor = cnx.cursor()
-	cursor.execute(query)
-	data=cursor.fetchall()
-	cnx.close()
-	return data
-
-
 def generate_uid():
 	return uuid.uuid1().hex
 
 def uniqueEntry(q):
-	conn = sqlite3.connect(dbpath)
+	conn = connect_db()
 	#query = "SELECT %s from %s where %s = '%s'" % (sel, tbl,sel,email)
 	cursor = conn.execute(q)
 	data = cursor.fetchall()
@@ -60,7 +46,7 @@ def getGroups(uuid):
 	where admin_uuid = '%s' order by id;""" % (uuid)
 	if uuid == 'test':
 		query = """SELECT * from groups""" 
-	conn = sqlite3.connect(dbpath)
+	conn = connect_db()
 	cursor= conn.cursor()
 	cursor.execute(query)
 	if cursor == None:
@@ -86,7 +72,7 @@ def _get_group(g_id, u_id):
 	query2 = """SELECT id as person_id,name,email,active,nots 
 	from people where group_id = 
 	(select id from groups where group_url_id = '%s')""" % (g_id)
-	conn = sqlite3.connect(dbpath)
+	conn =  connect_db()
 	cursor= conn.cursor()
 	cursor.execute(query1)
 	group_info = cursor.fetchall()
@@ -121,7 +107,7 @@ def get_people(g_id, u_id):
 	query = """SELECT id,name,email,nots
 	from people where group_id = 
 	(select id from groups where group_url_id = '%s')""" % (g_id)
-	conn = sqlite3.connect(dbpath)
+	conn =  connect_db()
 	cursor= conn.cursor()
 	cursor.execute(query)
 	people_info = cursor.fetchall()
@@ -285,7 +271,7 @@ def user_group_rights(gid, uid, pid,strict=True):
 				)
 		if query == None:
 			return False
-		conn = sqlite3.connect(dbpath)
+		conn =  connect_db()
 		cursor= conn.cursor()
 		cursor.execute(query)
 		if cursor == None:
@@ -308,7 +294,7 @@ def record_update(ugid):
 		log("Error updating group update time. "+query)
 
 def do_query(q):
-	conn = sqlite3.connect(dbpath)
+	conn =  connect_db()
 	cursor = conn.cursor()
 	cursor.execute(q)
 	conn.commit()

@@ -16,9 +16,6 @@ Codes:
 400 generic wrong
 404 error in understanding request
 """
-@app.route('/')
-def index():
-	return (jsonify(db.get_tables()),200)
 
 @app.route('/getgroups', methods=['GET'])
 def get_groups():
