@@ -11,6 +11,7 @@
 # production
 /build
 *.pyc
+/logs
 !spec/*.pyc
 # misc
 .DS_Store

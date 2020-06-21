@@ -29,8 +29,8 @@ def generate_uid():
 
 def uniqueEntry(q):
 	conn = connect_db()
-	#query = "SELECT %s from %s where %s = '%s'" % (sel, tbl,sel,email)
-	cursor = conn.execute(q)
+	cursor = conn.cursor()
+	cursor.execute(q)
 	data = cursor.fetchall()
 	conn.close()
 	if not data:
@@ -39,13 +39,10 @@ def uniqueEntry(q):
 		return False
 
 def getGroups(uuid):
-	#query = """SELECT * from groups where admin = (select id from users where uuid = '%s');""" % (uuid)
-	#query = """SELECT g.id as group_id,g.group_name,g.sent, p.id as person_id,p.name,p.email,p.active, p.nots from groups g inner join
-	#people p where g.id = p.group_id and g.admin_uuid = '%s' order by p.group_id;""" % (uuid)
-	query = """SELECT id as group_id,group_name,sent, public, group_url_id from groups 
+	query = """SELECT id as group_id,group_name,sent, public, group_url_id from groups
 	where admin_uuid = '%s' order by id;""" % (uuid)
 	if uuid == 'test':
-		query = """SELECT * from groups""" 
+		query = """SELECT * from groups"""
 	conn = connect_db()
 	cursor= conn.cursor()
 	cursor.execute(query)
@@ -61,7 +58,7 @@ def getGroups(uuid):
 			dataSingle[prop] = val
 		raw_data.append(dataSingle)
 	conn.close()
-	return raw_data	
+	return raw_data
 
 def _get_group(g_id, u_id):
 	if not user_group_rights(g_id,u_id,None, False):
@@ -69,8 +66,8 @@ def _get_group(g_id, u_id):
 
 	query1 = """SELECT id as group_id,group_name,sent,public,group_url_id from groups
 	where group_url_id = '%s'""" % (g_id)
-	query2 = """SELECT id as person_id,name,email,active,nots 
-	from people where group_id = 
+	query2 = """SELECT id as person_id,name,email,active,nots
+	from people where group_id =
 	(select id from groups where group_url_id = '%s')""" % (g_id)
 	conn =  connect_db()
 	cursor= conn.cursor()
@@ -79,7 +76,7 @@ def _get_group(g_id, u_id):
 	cursor.execute(query2)
 	people_info = cursor.fetchall()
 	conn.close()
-	
+
 	ret_data = {
 		"group_id": group_info[0][0],
 		"group_name": group_info[0][1],
@@ -95,7 +92,7 @@ def _get_group(g_id, u_id):
 			'name': personDetail[1],
 			'email': personDetail[2],
 			'active': personDetail[3],
-			'nots': personDetail[4] 
+			'nots': personDetail[4]
 		}
 		people.append(person)
 	ret_data["people"] = people
@@ -105,7 +102,7 @@ def get_people(g_id, u_id):
 	if not user_group_rights(g_id,u_id,None, False):
 		return 401
 	query = """SELECT id,name,email,nots
-	from people where group_id = 
+	from people where group_id =
 	(select id from groups where group_url_id = '%s')""" % (g_id)
 	conn =  connect_db()
 	cursor= conn.cursor()
@@ -114,13 +111,13 @@ def get_people(g_id, u_id):
 	conn.close()
 	return people_info
 
-	
+
 def group_sent(g_id):
 	query = """UPDATE groups SET sent = 1
 	where group_url_id = '%s'""" % (g_id)
 	do_query(query)
 	return 200
-	
+
 
 def _add_group(groupName, uuid):
 	broken_query = "error"
@@ -132,11 +129,10 @@ def _add_group(groupName, uuid):
 				values ('%s', '%s', '%s', '%s', 0,0,'%s');""" % (
 					groupName,nowTime,nowTime,uuid,ugid
 				)
-			broken_query =query 
+			broken_query =query
 			do_query(query)
 			return 200
 		except:
-			print("Error: add_group. "+broken_query)
 			log("Error: add_group. "+broken_query)
 			return 400
 	return 400
@@ -145,7 +141,7 @@ def _add_group(groupName, uuid):
 def make_update_strings(vars):
 	ret_string = ""
 	for var in vars:
-		ret_string = ret_string + "%s = '%s', " % (var, vars[var]) 
+		ret_string = ret_string + "%s = '%s', " % (var, vars[var])
 	return ret_string[:-2]
 
 
@@ -154,7 +150,7 @@ def _update_person(vars,uuid):
 	update_string = make_update_strings(vars)
 	if not user_group_rights(None,uuid,id, False):
 		return 401
-	
+
 	query = """update people set %s where id = %s""" % (
 				update_string, id
 			)
@@ -243,7 +239,7 @@ def _delete_person(pid, uuid):
 
 
 #Check if the current user has the rights for the action selected.
-#Strict false means that if the group is public allow this right (does not apply to delete) 
+#Strict false means that if the group is public allow this right (does not apply to delete)
 def user_group_rights(gid, uid, pid,strict=True):
 	try:
 		query = None
@@ -258,14 +254,14 @@ def user_group_rights(gid, uid, pid,strict=True):
 				)
 		elif pid:
 			if strict:
-				query = """select * from groups where id = 
-				(select group_id from people where id =%s) 
+				query = """select * from groups where id =
+				(select group_id from people where id =%s)
 				and admin_uuid ='%s';""" % (
 					pid, uid
 				)
 			else:
-				query = """select * from groups where id = 
-				(select group_id from people where id =%s) 
+				query = """select * from groups where id =
+				(select group_id from people where id =%s)
 				and (admin_uuid ='%s' or public=1);""" % (
 					pid, uid
 				)
@@ -286,7 +282,7 @@ def user_group_rights(gid, uid, pid,strict=True):
 
 def record_update(ugid):
 	nowTime = calendar.timegm(time.gmtime())
-	query = """update groups set last_update_date = '%s' where 
+	query = """update groups set last_update_date = '%s' where
 	group_url_id = '%s'""" % (nowTime,ugid)
 	try:
 		do_query(query)
@@ -298,4 +294,5 @@ def do_query(q):
 	cursor = conn.cursor()
 	cursor.execute(q)
 	conn.commit()
+	cursor.close()
 	conn.close()
