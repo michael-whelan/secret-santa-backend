@@ -6,32 +6,23 @@ The server side logic for the app is in two parts:
 ### 1. API
 
 A simple rest server used for data management (groups + settings, people in those groups etc).
-Using pythons BaseHTTPServer to handle my REST requests:
+Using Flaskr to handle my REST requests:
 ```python
-from BaseHTTPServer import HTTPServer
-from BaseHTTPServer import BaseHTTPRequestHandler
-import os
-class Handler (BaseHTTPRequestHandler) :
-  def do_GET(self) :
-    #in case of success
-    self.send_response(200)
-    json.dump('content for get', self.wfile)
-    return
-  def do_POST(self):
-    #do post stuff
-  def do_PUT(self):
-    #do put stuff
-  def do_DELETE(self):
-    #do delete stuff
-#Simple serving
-server = HTTPServer(("localhost", PORT), Handler)
-print ("serving at port", PORT)
-server.serve_forever()
+from flask import Flask, jsonify,abort,request
+
+@app.route('/getgroups', methods=['GET'])
+def get_groups():
+	uuid = request.args.get('uuid')
+	if not uuid:
+		abort(401)
+	else:
+		return (jsonify(db.getGroups(uuid)),200)
 ```
 
 
-Part of the planned python implementation is adding unique url ids for the groups. This will make public groups accessible through the URL. eg www.domain/12e333egwp where 12e333egwp is unique to a group.
-This will make sending/sharing groups easier, simply passing a url into a whatsapp or fb group and letting everyone add their own emails from there.
+Using React Router on the front end allowed the implementation of adding unique url ids for the groups. This makes public groups accessible through the URL. eg www.domain/group/12e333egwp where 12e333egwp is unique to a group.
+This comined with Flasks request.args allows for easy retrieval of url variables.
+This will make sending/sharing groups easier, simply passing a url and letting everyone add their own emails from there.
 
 
 ### 2. The Hat Sorter
