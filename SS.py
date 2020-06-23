@@ -76,7 +76,6 @@ def main(people_list = None):
 		else:
 			success=True
 
-	return 200
 	return send_messages(people_list)
 
 
