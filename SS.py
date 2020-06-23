@@ -77,9 +77,7 @@ def main(people_list = None):
 			success=True
 
 	return 200
-	#return send_messages(people_list)
-	print('success:', success)
-	print('fails:', fails)
+	return send_messages(people_list)
 
 
 def loopUsers(people_list):
