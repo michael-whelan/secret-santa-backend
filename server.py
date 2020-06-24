@@ -5,10 +5,11 @@ import db
 import SS
 from logger import log
 import local_settings
+from flask_cors import CORS
 
 
 app = Flask(__name__)
-
+CORS(app)
 """
 Codes:
 200 success
