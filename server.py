@@ -6,6 +6,7 @@ import SS
 from logger import log
 import local_settings
 from flask_cors import CORS
+import re
 
 
 app = Flask(__name__)
@@ -41,10 +42,11 @@ def send_mail():
 	uuid = request.args.get('uuid')
 	ugid = request.args.get('ugid')
 	people = db.get_people(ugid,uuid)
-	status = SS.gen_people(people)
-	if status ==200:
-		db.group_sent(ugid)
-		return(jsonify({'status': status }))
+	if email_check(people):
+		status = SS.gen_people(people)
+		if status ==200:
+			db.group_sent(ugid)
+			return(jsonify({'status': status }))
 	abort(400)
 
 @app.route('/creategroup', methods=['POST'])
@@ -114,6 +116,16 @@ def delete_group():
 		status = db._delete_group( request.args.get('ugid'),uuid)
 		return (jsonify({'status': status }))
 	abort(401)
+
+
+
+def email_check(people):
+	for person in people:
+		regex = '(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)'
+		if not re.search(regex,person[2]):
+			import pdb; pdb.set_trace()
+			return False
+	return True
 
 
 if __name__ == '__main__':
