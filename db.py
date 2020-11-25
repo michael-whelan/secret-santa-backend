@@ -141,7 +141,10 @@ def _add_group(groupName, uuid):
 def make_update_strings(vars):
 	ret_string = ""
 	for var in vars:
-		ret_string = ret_string + "%s = '%s', " % (var, vars[var])
+		value = vars[var]
+		if var == "email":
+			value = vars[var].lower().replace(" ","")
+		ret_string = ret_string + "%s = '%s', " % (var, value)
 	return ret_string[:-2]
 
 
@@ -209,7 +212,7 @@ def _add_person(vars):
 	if not user_group_rights(vars["ugid"],vars["uuid"], None,False):
 		return 401
 	new_name = vars["name"]
-	new_email = vars["email"]
+	new_email = vars["email"].lower().replace(" ","")
 	query = """insert into people(group_id, name, email, active) values (
 		(select id from groups where group_url_id = '%s')
 		, '%s', '%s',%s)""" % (
